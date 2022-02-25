@@ -211,13 +211,20 @@ class H5AudioPlayer extends Component<PlayerProps> {
 
   downloadProgressAnimationTimer?: number
 
+  originalSrcUrl: string = this.props.src
+
   togglePlay = (e: React.SyntheticEvent): void => {
     e.stopPropagation()
     const audio = this.audio.current
-    if ((audio.paused || audio.ended) && audio.src) {
+    if ((audio.paused || audio.ended)) { // && audio.src
       this.playAudioPromise()
     } else if (!audio.paused) {
       audio.pause()
+      audio.src = "about:blank"
+      setTimeout(function () {
+        audio.load()
+      })
+      this.forceUpdate()
     }
   }
 
@@ -227,6 +234,10 @@ class H5AudioPlayer extends Component<PlayerProps> {
    * Reference: https://developers.google.com/web/updates/2017/06/play-request-was-interrupted
    */
   playAudioPromise = (): void => {
+    if (this.audio.current.src !== this.originalSrcUrl) {
+      this.audio.current.src = this.originalSrcUrl
+      this.audio.current.load()
+    }
     const playPromise = this.audio.current.play()
     // playPromise is null in IE 11
     if (playPromise) {
